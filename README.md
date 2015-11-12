@@ -1,6 +1,9 @@
-Selenium-Grid-Extras
+Selenium-Grid-Extras Forked
 ====================
 ![](https://github.com/groupon/Selenium-Grid-Extras/blob/master/resources/node_view_screenshot.png)
+
+
+IMPORTANT: This project was forked from main Selenium Grid Extras project (https://github.com/groupon/Selenium-Grid-Extras). I would suggest you use that project. Listed below are the changes this project has implemented. The changes probably would not apply to your use
 
 Selenium Grid Extras is a project that helps you set up and manage your local Selenium Grid. Typical instances of the Grid consists of the HUB and Nodes. The HUB is responsible for managing test sessions and assigning new session idle nodes.
 
@@ -182,10 +185,38 @@ run
 launchctl load ~/Library/LaunchAgents/com.groupon.SeleniumGridExtras.plist
 ```
 
+Differences between Main Selenium Grid Extras Project
+============
+Currently, the main difference is that this fork has the added ability to change the location/filename of the video recording per test.
 
 
+Changing Video location/filename
+-------------------
+In your test, create a json file and save it to same location as your Selenium-Grid-Extras jar file. The json file needs to be named the sessionid (So if the sessionid of test is 'c46e363a-6785-4851-b6cc-9ce7378ac70d', then the json file should be 'c46e363a-6785-4851-b6cc-9ce7378ac70d.json').
+
+The json file should contain the following: TestName, Status, OutputDir, OutputFile, Node, SessionId
+TestName = name of your test
+Status = integer Status of your test (currently not used, but may be used in later version. So can put anything here)
+OutputDir = where to save video file
+OutputFile = what to rename file as
+Node = ip address of node that test was run on (currently not used, but may be used in later version. Can put anything here.)
+SessionId = session id of test run
 
 
+Here is a sample json file that your test should output
+```
+{
+    "TestName": "LoginTestMethod",
+    "Status": 2,
+    "OutputDir": "C:\\temp\\Automated\\LoginTestMethod",
+    "OutputFile": "LoginTestMethod_c46e363a-6785-4851-b6cc-9ce7378ac70d.mp4",
+    "Node": "10.1.1.24",
+    "SessionId": "c46e363a-6785-4851-b6cc-9ce7378ac70d" 
+
+}
+```
+
+When test is run through Selenium Grid Extras, then it will look for a json file named with same session id of test run. It will read in json file and then copy video to the OuputDir location and rename file as OutputFile.
 
 Contributing
 ============
