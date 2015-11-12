@@ -1,14 +1,21 @@
 package com.groupon.seleniumgridextras.utilities.threads.video;
 
 import com.google.common.base.Throwables;
+import com.google.gson.Gson;
+import com.groupon.seleniumgridextras.config.RuntimeConfig;
 import com.groupon.seleniumgridextras.tasks.config.TaskDescriptions;
 import com.groupon.seleniumgridextras.utilities.HttpUtility;
 import com.groupon.seleniumgridextras.utilities.json.JsonCodec;
 import com.groupon.seleniumgridextras.utilities.json.JsonParserWrapper;
+//import com.medmined.seleniumgridextras.testinfo.TestInfo;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -137,6 +144,19 @@ public class VideoDownloaderCallable implements Callable {
                     this.host,
                     downloadedFile.getAbsolutePath()));
 
+            // Copy to required destination
+            /* IMPORTANT:
+             * This is where we changed to read in from file or sql to copy video file
+             * to the output directory we want it to go to. An to rename file with
+             * testname_sessionid.mp4
+             * 
+             */
+            try {
+				CopyVideoFile(this.session);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
             return true;
         } else {
             logger.info(String.format(
@@ -205,5 +225,30 @@ public class VideoDownloaderCallable implements Callable {
             );
             return null;
         }
+    }
+    
+    private void CopyVideoFile(String session) throws IOException {
+    	Gson gson = new Gson();
+    	
+    	try {
+    		String testJSONFile = String.format("%s.json", session);
+    		logger.info(String.format("Openning Test's JSON file: %s", testJSONFile));
+
+    		BufferedReader br = new BufferedReader(
+    			new FileReader(testJSONFile));
+
+    		//convert the json string back to object
+    		TestInfo testInfo = gson.fromJson(br, TestInfo.class);
+    		
+    		File newVideoFile = new File(testInfo.OutputDir, testInfo.OutputFile);
+            logger.info(String.format("Copying video to hub location %s", newVideoFile.getAbsolutePath()));
+    		File outputDir = RuntimeConfig.getConfig().getVideoRecording().getOutputDir();
+    		String currentFile = session + ".mp4";
+    		File currentVideoFile = new File(outputDir, currentFile);
+    		FileUtils.copyFile(currentVideoFile, newVideoFile);
+
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}    	    	
     }
 }
