@@ -30,7 +30,7 @@ public class VideoRecorderCallable implements Callable {
     protected boolean recording = true;
     protected String sessionId;
     final protected File outputDir = RuntimeConfig.getConfig().getVideoRecording().getOutputDir();
-
+    final protected File testJSONDir = RuntimeConfig.getConfig().getVideoRecording().getTestJSONDir();
 
     protected String nodeName;
     protected String lastCommand;
@@ -56,6 +56,7 @@ public class VideoRecorderCallable implements Callable {
                     dimension.getWidth(),
                     dimension.getHeight()));
         }
+        
         VideoRecorderCallable.deleteOldMovies(outputDir);
     }
 
@@ -268,5 +269,25 @@ public class VideoRecorderCallable implements Callable {
 
         }
 
+    }
+    
+    public static void deleteOldTestJSONFiles(File jsonDir) {
+    	// Only run on Hub! Not Node!
+        File[] files = jsonDir.listFiles();
+        
+        //TODO: This is tested, but don't you dare modify this without writing a new test!
+        int filesToKeep = RuntimeConfig.getConfig().getVideoRecording().getVideosToKeep();
+        int currentFileCount = files.length;
+
+        if (currentFileCount > filesToKeep) {
+            Arrays.sort(files, LastModifiedFileComparator.LASTMODIFIED_COMPARATOR);
+            int
+                    filesToDelete = currentFileCount - filesToKeep;
+
+            for (int i = 0; i < filesToDelete; i++) {
+                logger.info("Cleaning up older test JSON files: " + files[i].getAbsolutePath());
+                files[i].delete();
+            }
+        }
     }
 }

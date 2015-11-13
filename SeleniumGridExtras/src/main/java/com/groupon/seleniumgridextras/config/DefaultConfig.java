@@ -45,7 +45,7 @@ import com.groupon.seleniumgridextras.utilities.json.JsonCodec;
 import java.io.File;
 
 public class DefaultConfig {
-
+	public static final String TEST_JSON_DIR = "test_JSON";
     public static final String VIDEO_OUTPUT_DIRECTORY = "video_output";
     public static final String REBOOT_AFTER_THIS_MANY_SESSIONS = "10";
     public static final String DEFAULT_HUB_PORT = "4444";
@@ -177,7 +177,7 @@ public class DefaultConfig {
         config.getVideoRecording().setTitleFrameFontColor(129, 182, 64, 128);
         config.getVideoRecording().setLowerThirdBackgroundColor(0, 0, 0, 200);
         config.getVideoRecording().setLowerThirdFontColor(255, 255, 255, 255);
-
+        config.getVideoRecording().setTestJSONDir(TEST_JSON_DIR);
     }
 
     public static boolean getAutoUpdateDrivers() {

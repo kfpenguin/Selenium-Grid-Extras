@@ -30,6 +30,10 @@ public class VideoRecorderCallableTest {
     final private File session1File = new File(DefaultConfig.VIDEO_OUTPUT_DIRECTORY, session1 + ".mp4");
     final private File session2File = new File(DefaultConfig.VIDEO_OUTPUT_DIRECTORY, session2 + ".mp4");
     final private File session3File = new File(DefaultConfig.VIDEO_OUTPUT_DIRECTORY, session3 + ".mp4");
+    
+    final private File json1File = new File(DefaultConfig.TEST_JSON_DIR, session1 + ".json");
+    final private File json2File = new File(DefaultConfig.TEST_JSON_DIR, session2 + ".json");
+    final private File json3File = new File(DefaultConfig.TEST_JSON_DIR, session3 + ".json");
 
     @Before
     public void setUp() throws Exception {
@@ -45,6 +49,9 @@ public class VideoRecorderCallableTest {
         delete(session1File);
         delete(session2File);
         delete(session3File);
+        delete(json1File);
+        delete(json2File);
+        delete(json3File);
         delete(new File(RuntimeConfig.getConfigFile()));
         delete(new File(VIDEO_RECORDER_TEST_JSON + ".example"));
     }
@@ -169,6 +176,29 @@ public class VideoRecorderCallableTest {
         assertFalse(session1File.exists());
         assertFalse(session2File.exists());
         assertTrue(session3File.exists());
+    }
+    
+    @Test
+    public void testDeleteOldTestJSONFiles() throws Exception {
+        // Create empty files
+        File jsonDir = new File(DefaultConfig.TEST_JSON_DIR);
+        if (!jsonDir.exists()) {
+        	jsonDir.mkdir();
+        }
+        
+        json1File.createNewFile();
+        Thread.sleep(100);
+        json2File.createNewFile();
+        Thread.sleep(100);
+        json3File.createNewFile();
+
+        // Delete older files
+        VideoRecorderCallable.deleteOldTestJSONFiles(jsonDir);
+
+        // Older files has been removed
+        assertFalse(json1File.exists());
+        assertFalse(json2File.exists());
+        assertTrue(json3File.exists());
     }
 
     @Test

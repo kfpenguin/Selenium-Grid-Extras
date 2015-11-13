@@ -231,17 +231,26 @@ public class VideoDownloaderCallable implements Callable {
     	Gson gson = new Gson();
     	
     	try {
+    		File testJSONFolder = RuntimeConfig.getConfig().getVideoRecording().getTestJSONDir();
+//    		String directory = "test_JSON";
+//    		File testJSONFolder = new File(directory);
     		String testJSONFile = String.format("%s.json", session);
-    		logger.info(String.format("Openning Test's JSON file: %s", testJSONFile));
-
+    		logger.info(String.format("Try to copy video file for session %s", session));
+    		File jsonLocation = new File(testJSONFolder, testJSONFile);
+    		if (!DoesFileExist(jsonLocation)) {
+    			return;
+    		}
+    		
+    		// File found. Continue...  
     		BufferedReader br = new BufferedReader(
-    			new FileReader(testJSONFile));
+    			new FileReader(jsonLocation));
 
     		//convert the json string back to object
     		TestInfo testInfo = gson.fromJson(br, TestInfo.class);
     		
     		File newVideoFile = new File(testInfo.OutputDir, testInfo.OutputFile);
-            logger.info(String.format("Copying video to hub location %s", newVideoFile.getAbsolutePath()));
+            logger.info(String.format("Copying video to hub location %s", 
+            		newVideoFile.getAbsolutePath()));
     		File outputDir = RuntimeConfig.getConfig().getVideoRecording().getOutputDir();
     		String currentFile = session + ".mp4";
     		File currentVideoFile = new File(outputDir, currentFile);
@@ -250,5 +259,21 @@ public class VideoDownloaderCallable implements Callable {
     	} catch (IOException e) {
     		e.printStackTrace();
     	}    	    	
+    }
+    
+    private boolean DoesFileExist(File file) {
+    	logger.info(String.format("Check if test's json file exists: %s",
+                file.getAbsolutePath()));
+    	
+    	if (file.exists()) {
+            logger.info(String.format("Found test's json file: %s",
+                    file.getAbsolutePath()));
+            return true;
+        } else {
+            logger.info(String.format(
+                    "Test does not have a json file for this session %s. Don't copy video file.",
+                    this.session));
+            return false;
+        }
     }
 }

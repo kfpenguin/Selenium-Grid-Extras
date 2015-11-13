@@ -65,10 +65,13 @@ public class HttpUtility {
         //Don't modify this without running the comment out tests!
 
         File destinationDir;
+        File testJSONDir;
         if (RuntimeConfig.getConfig() != null) {
             destinationDir = RuntimeConfig.getConfig().getVideoRecording().getOutputDir();
+            testJSONDir = RuntimeConfig.getConfig().getVideoRecording().getTestJSONDir();
         } else {
             destinationDir = new File(DefaultConfig.VIDEO_OUTPUT_DIRECTORY);
+            testJSONDir = new File(DefaultConfig.TEST_JSON_DIR);
         }
 
         if (!destinationDir.exists()) {
@@ -77,6 +80,7 @@ public class HttpUtility {
 
         // Delete old movies
         VideoRecorderCallable.deleteOldMovies(destinationDir);
+        VideoRecorderCallable.deleteOldTestJSONFiles(testJSONDir);
 
         File destFile = new File(
                 destinationDir.getAbsolutePath(),

@@ -19,6 +19,7 @@ public class VideoRecordingOptions extends HashMap<String, String> {
   private static final String TITLE_FRAME_FONT_COLOR = "title_frame_font_color";
   private static final String LOWER_THIRD_BACKGROUND_COLOR = "lower_third_background_color";
   private static final String LOWER_THIRD_FONT_COLOR = "lower_third_font_color";
+  private static final String TEST_JSON_DIR = "test_json_dir";
 
   public VideoRecordingOptions() {
   }
@@ -112,7 +113,14 @@ public class VideoRecordingOptions extends HashMap<String, String> {
                      Integer.valueOf(colorArray[2]), Integer.valueOf(colorArray[3]));
   }
 
+  public void setTestJSONDir(String testJSONDir) {
+    this.put(TEST_JSON_DIR, testJSONDir);
+  }
 
+  public File getTestJSONDir() {
+    return new File(this.get(TEST_JSON_DIR));
+  }
 
+  
 
 }
