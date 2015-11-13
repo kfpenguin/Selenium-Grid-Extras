@@ -213,12 +213,12 @@ Here is an example to put in your selenium_grid_extras_config.json:
 In your test, create a json file and save it to the directory either specified in  selenium_grid_extras_config.json or the default directory *test_JSON*. The json file needs to be named the test's sessionid (So if the sessionid of test is 'c46e363a-6785-4851-b6cc-9ce7378ac70d', then the json file should be 'c46e363a-6785-4851-b6cc-9ce7378ac70d.json').
 
 The json file should contain the following: TestName, Status, OutputDir, OutputFile, Node, SessionId
-*TestName = name of your test
-*Status = integer Status of your test (currently not used, but may be used in later version. So can put anything here)
-*OutputDir = where to save video file
-*OutputFile = what to rename file as
-*Node = ip address of node that test was run on (currently not used, but may be used in later version. Can put anything here.)
-*SessionId = session id of test run
+* TestName = name of your test
+* Status = integer Status of your test (currently not used, but may be used in later version. So can put anything here)
+* OutputDir = where to save video file
+* OutputFile = what to rename file as
+* Node = ip address of node that test was run on (currently not used, but may be used in later version. Can put anything here.)
+* SessionId = session id of test run
 
 
 Here is a sample json file that your test should output
