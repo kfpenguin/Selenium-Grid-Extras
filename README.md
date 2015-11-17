@@ -183,14 +183,15 @@ run
 launchctl load ~/Library/LaunchAgents/com.groupon.SeleniumGridExtras.plist
 ```
 
-How to Change Video location/filename Per Test Session
-============
-Selenium Grid Extras now has the ability to change output directory and filename of the video recordings on per test session. 
 
-Basically, what you need to do is in your test code have it output a JSON file containing the output directory and output filename. Selenium Grid Extras will pick up the JSON file that matches the current session once video recording is finished and then will copy file to your requested destination. This is explained in greater detail below:
+How to Copy Video to a Different Location/Filename Per Test Session
+-------------------------------------------------------
+Selenium Grid Extras now has the ability to change output directory and filename of the video recordings per each test session. 
+
+Basically, what you need to do is in your test code have it output a JSON file (probably in setup or teardown) containing the output directory and output filename. If this JSON file exists, then Selenium Grid Extras will pick up the JSON file that matches the current session once video recording is finished and then will copy the video file to your requested destination and rename it. If a JSON file does not exist or does not match the current session, Selenium Grid Extras will continue to copy video to default video output location. This is explained in greater detail below:
 
 
-Added a new Video Recording option. Under *video_recording_options* add the option *test_json_dir* that contains the directory where [sessionid].json files will be located. The default directory is *test_JSON*.
+Added a new Video Recording option. Under *video_recording_options* add the option *test_json_dir* that contains the directory where [SessionId].json files will be located. The default directory is *test_JSON* if this option is not added.
 
 Here is an example to put in your selenium_grid_extras_config.json:
 ```
@@ -210,35 +211,26 @@ Here is an example to put in your selenium_grid_extras_config.json:
     },
 ```
 
-In your test, create a json file and save it to the directory either specified in  selenium_grid_extras_config.json or the default directory *test_JSON*. The json file needs to be named the test's sessionid (So if the sessionid of test is 'c46e363a-6785-4851-b6cc-9ce7378ac70d', then the json file should be 'c46e363a-6785-4851-b6cc-9ce7378ac70d.json').
+In your test, create a JSON file and save it to the directory either specified in hub's selenium_grid_extras_config.json or the default directory *test_JSON* on hub. The json file needs to be named the test's SessionId (So if the SessionId of the test is 'c46e363a-6785-4851-b6cc-9ce7378ac70d', then the JSON file should be 'c46e363a-6785-4851-b6cc-9ce7378ac70d.json').
 
-The json file should contain the following: TestName, Status, OutputDir, OutputFile, Node, SessionId
-* TestName = name of your test
-* Status = integer Status of your test (currently not used, but may be used in later version. So can put anything here)
-* OutputDir = where to save video file
-* OutputFile = what to rename file as
-* Node = ip address of node that test was run on (currently not used, but may be used in later version. Can put anything here.)
-* SessionId = session id of test run
+The JSON file should contain the following: OutputDir, OutputFile
+
+* OutputDir = The folder to save video file
+* OutputFile = What to rename the file
 
 
-Here is a sample json file that your test should output
+Here is a sample JSON (in this case c46e363a-6785-4851-b6cc-9ce7378ac70d.json) file that your test should output.
 ```
 {
-    "TestName": "LoginTestMethod",
-    "Status": 2,
-    "OutputDir": "C:\\temp\\Automated\\LoginTestMethod",
-    "OutputFile": "LoginTestMethod_c46e363a-6785-4851-b6cc-9ce7378ac70d.mp4",
-    "Node": "10.1.1.24",
-    "SessionId": "c46e363a-6785-4851-b6cc-9ce7378ac70d" 
-
+    "OutputDir": "C:\\Automated\\LoginTestMethod",
+    "OutputFile": "LoginTestMethod_c46e363a-6785-4851-b6cc-9ce7378ac70d.mp4"
 }
 ```
 
-When test is run through Selenium Grid Extras, then it will look for a [sessionid].json file named with same session id of test run. It will read in json file and then copy video to the OuputDir location and rename file as OutputFile. 
+When a test is run through Selenium Grid Extras, it will then look for a [SessionId].json file named with same session id of test run. It will read in the [SessionId].json file and then copy the video to the OuputDir location and rename the file as OutputFile. If no [SessionId].json file exists, then test will not try to copy.
 
-The number of [sessionid].json files kept in your test_JSON_dir is tied to the *videos_to_keep* option (default is 40). So these files will eventually get cleaned up just like mp4 files.
+The number of [SessionId].json files kept in your *test_JSON_dir* is tied to the *videos_to_keep* option (default is 40). So they will be cleaned up every test session run. Also, if the video files have a different output location than the *video_output_dir*, the *videos_to_keep* option will still apply. So if you have a *pass* and *fail* video output directories and depending upon if the test passes or not the [SessionId].json will contain one or the other directories, each directory will be limited to whatever *videos_to_keep* is set.
 
-NOTE: Using this option only copies the video files. The original video recording still remain in *video_ouput* folder. Also, this may be obvious but unless copied video files remain in *video_output* folder they are no longer tied to *videos_to_keep* cleanup.
 
 Contributing
 ============

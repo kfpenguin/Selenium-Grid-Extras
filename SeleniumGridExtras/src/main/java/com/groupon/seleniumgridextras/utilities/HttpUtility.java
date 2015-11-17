@@ -1,6 +1,7 @@
 package com.groupon.seleniumgridextras.utilities;
 
 import com.google.common.base.Throwables;
+import com.google.gson.Gson;
 import com.groupon.seleniumgridextras.VideoHttpExecutor;
 import com.groupon.seleniumgridextras.config.DefaultConfig;
 import com.groupon.seleniumgridextras.config.RuntimeConfig;
@@ -8,7 +9,9 @@ import com.groupon.seleniumgridextras.utilities.threads.video.VideoRecorderCalla
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -61,7 +64,7 @@ public class HttpUtility {
         return conn;
     }
 
-    public static File downloadVideoFromUri(URI uri) {
+    public static File downloadVideoFromUri(URI uri, String session) throws IOException {
         //Don't modify this without running the comment out tests!
 
         File destinationDir;
@@ -77,12 +80,17 @@ public class HttpUtility {
         if (!destinationDir.exists()) {
             destinationDir.mkdir();
         }
+        
+        if (!testJSONDir.exists()) {
+        	testJSONDir.mkdir();
+        }
 
+        
         // Delete old movies
         VideoRecorderCallable.deleteOldMovies(destinationDir);
         VideoRecorderCallable.deleteOldTestJSONFiles(testJSONDir);
 
-        File destFile = new File(
+        File hubDestinationFile = new File(
                 destinationDir.getAbsolutePath(),
                 uri.getRawPath().replaceAll(
                         VideoHttpExecutor.GET_VIDEO_FILE_ENDPOINT,
@@ -90,6 +98,8 @@ public class HttpUtility {
                         "/",
                         ""));
 
+        File destFile = HttpUtility.GetTestSessionDownload(hubDestinationFile, testJSONDir, session);
+        
         try {
             FileUtils.copyURLToFile(uri.toURL(), destFile);
         } catch (Exception e) {
@@ -125,6 +135,71 @@ public class HttpUtility {
 
         return -1;
     }
+    
+    private static File GetTestSessionDownload(File hubDestinationFile, File testJSONDir, String session) throws IOException {
+    	Gson gson = new Gson();
+    	File testSessionDestinationFile = null;
+    	try {
+    		String testJSONFile = String.format("%s.json", session);    		
+    		File jsonLocation = new File(testJSONDir, testJSONFile);
+    		
+    		// If no matching session file exists then copy to default hub location
+    		if (!DoesTestSessionFileExist(jsonLocation, session)) {
+    			return hubDestinationFile;
+    		}
+    		
+    		logger.info(String.format("Try to copy video file for session %s", session));
+    		 
+    		BufferedReader br = new BufferedReader(
+    			new FileReader(jsonLocation));
 
+    		TestInfo testInfo = gson.fromJson(br, TestInfo.class);
+    		
+    		File outputDir = new File(testInfo.OutputDir);
+    		if (!outputDir.exists()) {
+    			outputDir.mkdir();
+            }
+    		
+    		VideoRecorderCallable.deleteOldMovies(outputDir);
+    		
+    		testSessionDestinationFile = new File(outputDir, testInfo.OutputFile);
+            logger.info(String.format("Found output destination for video %s", 
+            		testSessionDestinationFile.getAbsolutePath()));
 
+    	} catch (IOException e) {
+    		String error = String.format("IOError when trying to find test session video output location, %s\n%s",
+                    e.getMessage(),
+                    Throwables.getStackTraceAsString(e));
+
+            logger.warn(error);
+    	} catch (Exception e) { //This catch all is in case something goes wrong in parsing or something so it's not lost
+	        String error = String.format("Something went CATASTROPHICALLY wrong when trying to find test session video output location, %s\n%s",
+	                e.getMessage(),
+	                Throwables.getStackTraceAsString(e));
+	
+	        logger.error(error);
+	    }
+    	
+    	if (testSessionDestinationFile == null) {
+    		return hubDestinationFile;
+    	}
+    	
+    	return testSessionDestinationFile;
+    }
+    
+    private static boolean DoesTestSessionFileExist(File file, String session) {
+    	logger.info(String.format("Check if test's json file exists: %s",
+                file.getAbsolutePath()));
+    	
+    	if (file.exists()) {
+            logger.info(String.format("Found test's json file: %s",
+                    file.getAbsolutePath()));
+            return true;
+        } else {
+            logger.info(String.format(
+                    "Test does not have a json file for this session %s. Don't copy video file.",
+                    session));
+            return false;
+        }
+    }
 }

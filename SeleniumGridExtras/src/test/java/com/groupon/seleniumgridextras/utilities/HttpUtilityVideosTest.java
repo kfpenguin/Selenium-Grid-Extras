@@ -25,6 +25,9 @@ public class HttpUtilityVideosTest {
     final private String video1Filename = "e985bb1c-bb92-4b16-8e76-62e039efbbc0.mp4";
     final private String video2Filename = "f041511c-367d-4772-a82a-7b48ab69615c.mp4";
     final private String video3Filename = "94a74a04-1579-4475-b65d-926b905f0a40.mp4";
+    final private String session1 = "e985bb1c-bb92-4b16-8e76-62e039efbbc0";
+    final private String session2 = "f041511c-367d-4772-a82a-7b48ab69615c";
+    final private String session3 = "94a74a04-1579-4475-b65d-926b905f0a40";
 
     @Before
     public void setUp() throws Exception {
@@ -52,18 +55,18 @@ public class HttpUtilityVideosTest {
 
     @Test
     public void testGetVideoFromUri() throws Exception {
-        File local1 = HttpUtility.downloadVideoFromUri(new URI(videosUrl + video1Filename));
+        File local1 = HttpUtility.downloadVideoFromUri(new URI(videosUrl + video1Filename), session1);
         assertTrue(local1.exists());
     }
 
     @Test
     public void testGetVideoFromUriAndDeleteOldMovies() throws Exception {
-        File video1 = HttpUtility.downloadVideoFromUri(new URI(videosUrl + video1Filename));
-        File video2 = HttpUtility.downloadVideoFromUri(new URI(videosUrl + video2Filename));
+        File video1 = HttpUtility.downloadVideoFromUri(new URI(videosUrl + video1Filename), session1);
+        File video2 = HttpUtility.downloadVideoFromUri(new URI(videosUrl + video2Filename), session2);
         assertTrue(video1.exists());
         assertTrue(video2.exists());
 
-        File video3 = HttpUtility.downloadVideoFromUri(new URI(videosUrl + video3Filename));
+        File video3 = HttpUtility.downloadVideoFromUri(new URI(videosUrl + video3Filename), session3);
 
         // Only one file has been removed because the number of files is checked before the download 
         assertFalse(video1.exists());
