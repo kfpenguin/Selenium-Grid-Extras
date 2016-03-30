@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -98,7 +99,7 @@ public class HttpUtility {
                         "/",
                         ""));
 
-        File destFile = HttpUtility.GetTestSessionDownload(hubDestinationFile, testJSONDir, session);
+        File destFile = HttpUtility.getTestSessionDownload(hubDestinationFile, testJSONDir, session);
         
         try {
             FileUtils.copyURLToFile(uri.toURL(), destFile);
@@ -136,24 +137,34 @@ public class HttpUtility {
         return -1;
     }
     
-    private static File GetTestSessionDownload(File hubDestinationFile, File testJSONDir, String session) throws IOException {
+    public static TestInfo testSessionDownloadInfo(File testSessionJSON) throws FileNotFoundException {
     	Gson gson = new Gson();
+    	BufferedReader br = new BufferedReader(
+    			new FileReader(testSessionJSON));
+
+		TestInfo testInfo = gson.fromJson(br, TestInfo.class);
+		return testInfo;
+    }
+    
+    public static File getTestSessionDownload(File hubDestinationFile, File testJSONDir, String session) throws IOException {
+//    	Gson gson = new Gson();
     	File testSessionDestinationFile = null;
     	try {
     		String testJSONFile = String.format("%s.json", session);    		
-    		File jsonLocation = new File(testJSONDir, testJSONFile);
+    		File testSessionJSON = new File(testJSONDir, testJSONFile);
     		
     		// If no matching session file exists then copy to default hub location
-    		if (!DoesTestSessionFileExist(jsonLocation, session)) {
+    		if (!doesTestSessionFileExist(testSessionJSON, session)) {
     			return hubDestinationFile;
     		}
     		
     		logger.info(String.format("Try to copy video file for session %s", session));
     		 
-    		BufferedReader br = new BufferedReader(
-    			new FileReader(jsonLocation));
-
-    		TestInfo testInfo = gson.fromJson(br, TestInfo.class);
+    		TestInfo testInfo = testSessionDownloadInfo(testSessionJSON);
+//    		BufferedReader br = new BufferedReader(
+//    			new FileReader(jsonLocation));
+//
+//    		TestInfo testInfo = gson.fromJson(br, TestInfo.class);
     		
     		File outputDir = new File(testInfo.OutputDir);
     		if (!outputDir.exists()) {
@@ -187,7 +198,7 @@ public class HttpUtility {
     	return testSessionDestinationFile;
     }
     
-    private static boolean DoesTestSessionFileExist(File file, String session) {
+    public static boolean doesTestSessionFileExist(File file, String session) {
     	logger.info(String.format("Check if test's json file exists: %s",
                 file.getAbsolutePath()));
     	

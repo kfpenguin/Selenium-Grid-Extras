@@ -1,8 +1,11 @@
 package com.groupon.seleniumgridextras.utilities.threads.video;
 
 
+import com.google.common.base.Throwables;
 import com.groupon.seleniumgridextras.config.RuntimeConfig;
+import com.groupon.seleniumgridextras.utilities.HttpUtility;
 import com.groupon.seleniumgridextras.utilities.ScreenshotUtility;
+import com.groupon.seleniumgridextras.utilities.TestInfo;
 import com.groupon.seleniumgridextras.utilities.TimeStampUtility;
 import com.groupon.seleniumgridextras.videorecording.ImageProcessor;
 import com.xuggle.mediatool.IMediaWriter;
@@ -16,6 +19,7 @@ import org.apache.log4j.Logger;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.Callable;
@@ -56,8 +60,8 @@ public class VideoRecorderCallable implements Callable {
                     dimension.getWidth(),
                     dimension.getHeight()));
         }
-        
-        VideoRecorderCallable.deleteOldMovies(outputDir);
+            
+        VideoRecorderCallable.deleteOldMovies(outputDir);        
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.groupon.seleniumgridextras.utilities.threads.video;
 
 import org.apache.log4j.Logger;
 
+import com.groupon.seleniumgridextras.config.RuntimeConfig;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,7 +39,7 @@ public class VideoRecordingThreadPool {
     }
 
     public static Future<String> startVideoRecording(String sessionName) {
-        return startVideoRecording(sessionName, 120);
+        return startVideoRecording(sessionName, RuntimeConfig.getConfig().getVideoRecording().getIdleTimeout());
     }
 
     public static Future<String> stopVideoRecording(String sessionName) {
