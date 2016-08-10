@@ -34,66 +34,31 @@
  * Date: 5/10/13
  * Time: 4:06 PM
  */
-package com.groupon.seleniumgridextras.tasks;
-
-import com.google.gson.JsonObject;
+package com.groupon.seleniumgridextras.config.driver;
 
 import com.groupon.seleniumgridextras.config.RuntimeConfig;
-import com.groupon.seleniumgridextras.tasks.config.TaskDescriptions;
-import com.groupon.seleniumgridextras.utilities.TimeStampUtility;
-import org.apache.log4j.Logger;
 
-public class RebootNode extends ExecuteOSTask {
+public class GeckoDriver extends DriverInfo {
 
-    private static Logger logger = Logger.getLogger(RebootNode.class);
+  @Override
+  public String getExecutablePath() {
 
-    public RebootNode() {
-        setEndpoint(TaskDescriptions.Endpoints.REBOOT);
-        setDescription(TaskDescriptions.Description.REBOOT);
-        JsonObject params = new JsonObject();
-        setAcceptedParams(params);
-        setRequestType("GET");
-        setResponseType("json");
-        setClassname(this.getClass().getCanonicalName().toString());
-        setCssClass(TaskDescriptions.UI.BTN_DANGER);
-        setButtonText(TaskDescriptions.UI.ButtonText.REBOOT);
-        setEnabledInGui(true);
+    String
+        path =
+        this.getDirectory() + RuntimeConfig.getOS().getFileSeparator() + getExecutableName();
+
+    return path;
+  }
+
+  @Override
+  public String getExecutableName() {
+//    String exe = "geckodriver_" + this.getVersion();
+    String exe = "wires";
+//    String exe = this.getVersion();
+
+    if (RuntimeConfig.getOS().isWindows()) {
+      exe = exe + ".exe";
     }
-
-    @Override
-    public String getWindowsCommand() {
-        return getWindowsCommand("");
-    }
-
-    @Override
-    public String getWindowsCommand(String param) {
-        logReboot();
-        return "shutdown -r -t 1 -f";
-    }
-
-    @Override
-    public String getLinuxCommand() {
-        return getLinuxCommand("");
-    }
-
-    @Override
-    public String getLinuxCommand(String param) {
-        logReboot();
-        return "sudo shutdown -r now";
-    }
-
-    @Override
-    public String getMacCommand() {
-        return getMacCommand("");
-    }
-
-    @Override
-    public String getMacCommand(String param) {
-        logReboot();
-        return "sudo shutdown -r now";
-    }
-
-    protected void logReboot() {
-        logger.info("Rebooting " + RuntimeConfig.getOS().getHostName() + " at " + TimeStampUtility.getTimestampAsString());
-    }
+    return exe;
+  }
 }

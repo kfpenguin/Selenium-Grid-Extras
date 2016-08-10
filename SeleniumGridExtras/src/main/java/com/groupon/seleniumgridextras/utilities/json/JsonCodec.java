@@ -85,6 +85,8 @@ public class JsonCodec {
         public static final String CURRENT_USER = "current_user";
         public static final String CURRENT_DOMAIN = "current_domain";
         public static final String AUTO_LOGON_ENABLED = "auto_logon_enabled";
+        public static final String RESOLUTION_WIDTH = "width";
+        public static final String RESOLUTION_HEIGHT = "height";
 
         public static class JVM {
             public static final String JVM_INFO = "jvm";
@@ -169,9 +171,11 @@ public class JsonCodec {
 
         public static final String OLD_WEB_DRIVER_JAR = "old_web_driver_jar";
         public static final String OLD_CHROME_DRIVER = "old_chrome_driver";
+        public static final String OLD_GECKO_DRIVER = "old_gecko_driver";
         public static final String OLD_IE_DRIVER = "old_ie_driver";
         public static final String NEW_WEB_DRIVER_JAR = "new_web_driver_jar";
         public static final String NEW_CHROME_DRIVER = "new_chrome_driver";
+        public static final String NEW_GECKO_DRIVER = "new_gecko_driver";
         public static final String NEW_IE_DRIVER = "new_ie_driver";
 
 

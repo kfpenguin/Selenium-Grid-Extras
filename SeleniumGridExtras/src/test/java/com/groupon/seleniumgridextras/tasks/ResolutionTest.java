@@ -34,66 +34,56 @@
  * Date: 5/10/13
  * Time: 4:06 PM
  */
+
 package com.groupon.seleniumgridextras.tasks;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.google.gson.JsonObject;
 
-import com.groupon.seleniumgridextras.config.RuntimeConfig;
-import com.groupon.seleniumgridextras.tasks.config.TaskDescriptions;
-import com.groupon.seleniumgridextras.utilities.TimeStampUtility;
-import org.apache.log4j.Logger;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-public class RebootNode extends ExecuteOSTask {
+import java.util.HashMap;
+import java.util.Map;
 
-    private static Logger logger = Logger.getLogger(RebootNode.class);
+// TODO Add conditions for Windows
+public class ResolutionTest {
 
-    public RebootNode() {
-        setEndpoint(TaskDescriptions.Endpoints.REBOOT);
-        setDescription(TaskDescriptions.Description.REBOOT);
-        JsonObject params = new JsonObject();
-        setAcceptedParams(params);
-        setRequestType("GET");
-        setResponseType("json");
-        setClassname(this.getClass().getCanonicalName().toString());
-        setCssClass(TaskDescriptions.UI.BTN_DANGER);
-        setButtonText(TaskDescriptions.UI.ButtonText.REBOOT);
-        setEnabledInGui(true);
+  public Resolution task;
+
+  @Before
+  public void setUp() throws Exception {
+    task = new Resolution();
+  }
+
+  @After
+  public void tearDown() throws Exception {
+
+  }
+
+  @Test
+  public void testGetResolution() {
+    JsonObject object = task.execute();
+    assertEquals(object.get("error").getAsJsonArray().size(), 0);
+    if(System.getProperty("os.name").contains("Mac")) {
+      assertTrue(object.get("out").getAsJsonArray().get(0).getAsString().contains("Resolution"));
     }
-
-    @Override
-    public String getWindowsCommand() {
-        return getWindowsCommand("");
+  }
+  
+  @Test
+  public void testSetResolution() {
+    Map params = new HashMap();
+    params.put("width", "1900");
+    params.put("height", "1200");
+    
+    JsonObject object = task.execute(params);
+    if(System.getProperty("os.name").contains("Mac")) {
+      assertTrue(object.get("error").getAsString().contains("Not yet implemented"));
     }
+  }
 
-    @Override
-    public String getWindowsCommand(String param) {
-        logReboot();
-        return "shutdown -r -t 1 -f";
-    }
 
-    @Override
-    public String getLinuxCommand() {
-        return getLinuxCommand("");
-    }
-
-    @Override
-    public String getLinuxCommand(String param) {
-        logReboot();
-        return "sudo shutdown -r now";
-    }
-
-    @Override
-    public String getMacCommand() {
-        return getMacCommand("");
-    }
-
-    @Override
-    public String getMacCommand(String param) {
-        logReboot();
-        return "sudo shutdown -r now";
-    }
-
-    protected void logReboot() {
-        logger.info("Rebooting " + RuntimeConfig.getOS().getHostName() + " at " + TimeStampUtility.getTimestampAsString());
-    }
 }

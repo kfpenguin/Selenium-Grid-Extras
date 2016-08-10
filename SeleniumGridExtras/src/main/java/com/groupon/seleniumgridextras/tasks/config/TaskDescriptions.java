@@ -5,6 +5,7 @@ public class TaskDescriptions {
     public static class Endpoints {
         public static final String AUTO_UPGRADE_WEBDRIVER = "/auto_upgrade_webdriver";
         public static final String DOWNLOAD_CHROMEDRIVER = "/download_chromedriver";
+        public static final String DOWNLOAD_GECKODRIVER = "/download_geckodriver";
         public static final String DOWNLOAD_IEDRIVER = "/download_iedriver";
         public static final String DOWNLOAD_WEBDRIVER = "/download_webdriver";
         public static final String DIR = "/dir";
@@ -26,6 +27,7 @@ public class TaskDescriptions {
         public static final String LOG_DELETE = "/log_delete";
         public static final String NETSTAT = "/netstat";
         public static final String REBOOT = "/reboot";
+        public static final String RESOLUTION = "/resolution";
         public static final String SCREENSHOT = "/screenshot";
         public static final String SETUP = "/setup";
         public static final String START_GRID = "/start_grid";
@@ -49,6 +51,9 @@ public class TaskDescriptions {
         public static final
         String DOWNLOAD_CHROMEDRIVER =
                 "Downloads a version of ChromeDriver to local machine";
+        public static final
+        String DOWNLOAD_GECKODRIVER =
+                "Downloads a version of GeckoDriver to local machine";
         public static final
         String DOWNLOAD_IEDRIVER =
                 "Downloads a version of IEDriver.exe to local machine";
@@ -109,6 +114,7 @@ public class TaskDescriptions {
                 NETSTAT =
                 "Returns a system call for all ports. Use /port_info to get parsed details";
         public static final String REBOOT = "Restart the host node";
+        public static final String RESOLUTION = "Changes the screen resolution. No param for current resolution";
         public static final String SCREENSHOT = "Take a full OS screen Screen Shot of the node";
         public static final
         String
@@ -151,6 +157,7 @@ public class TaskDescriptions {
         public static class ButtonText {
 
             public static final String DOWNLOAD_CHROMEDRIVER = "Download Chrome-Driver";
+            public static final String DOWNLOAD_GECKODRIVER = "Download Gecko-Driver";
             public static final String DOWNLOAD_IEDRIVER = "Download IE-Driver";
             public static final String DOWNLOAD_WEBDRIVER = "Download WebDriver";
             public static final String DIR = "List Shared Dir";
@@ -171,6 +178,7 @@ public class TaskDescriptions {
             public static final String MOVE_MOUSE = "Move mouse";
             public static final String NETSTAT = "netstat";
             public static final String REBOOT = "reboot";
+            public static final String RESOLUTION = "resolution";
             public static final String SCREENSHOT = "screenshot";
             public static final String SETUP = "setup";
             public static final String START_GRID = "StartGrid";

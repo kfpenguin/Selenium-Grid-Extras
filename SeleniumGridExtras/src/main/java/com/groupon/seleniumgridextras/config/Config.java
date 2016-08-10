@@ -23,6 +23,7 @@ public class Config {
     public static final String IEDRIVER = "iedriver";
     public static final String EDGEDRIVER = "edgedriver";
     public static final String CHROME_DRIVER = "chromedriver";
+    public static final String GECKO_DRIVER = "geckodriver";
     public static final String SHARED_DIR = "expose_directory";
 
     public static final String AUTO_START_NODE = "auto_start_node";
@@ -32,6 +33,7 @@ public class Config {
     public static final String NODE_CONFIG_FILES = "node_config_files";
     public static final String HUB_CONFIG_FILES = "hub_config_files";
     public static final String HUB_ADDITIONAL_CLASSPATH = "hub_additional_classpath";
+    public static final String NODE_ADDITIONAL_CLASSPATH = "node_additional_classpath";
 
     public static final String GRID_JVM_OPTIONS = "grid_jvm_options";
     public static final String GRID_JVM_X_OPTIONS = "grid_jvm_x_options";
@@ -134,6 +136,7 @@ public class Config {
         initializeWebdriver();
         initializeIEDriver();
         initializeChromeDriver();
+        initializeGeckoDriver();
 
         getConfigMap().put(NODE_CONFIG_FILES, new LinkedList<String>());
         getConfigMap().put(HUB_CONFIG_FILES, new LinkedList<String>());
@@ -141,6 +144,7 @@ public class Config {
         initializeHubConfig();
 
         getConfigMap().put(HUB_ADDITIONAL_CLASSPATH, new ArrayList<String>());
+        getConfigMap().put(NODE_ADDITIONAL_CLASSPATH, new ArrayList<String>());
         getConfigMap().put(GRID_JVM_OPTIONS, new HashMap<String, Object>());
         getConfigMap().put(GRID_EXTRAS_JVM_OPTIONS, new HashMap<String, Object>());
 
@@ -202,6 +206,10 @@ public class Config {
         getConfigMap().put(CHROME_DRIVER, new ChromeDriver());
     }
 
+    private void initializeGeckoDriver() {
+        getConfigMap().put(GECKO_DRIVER, new GeckoDriver());
+    }
+
     public void addNodeConfigFile(String filename) {
         LinkedList<String> files = (LinkedList<String>) getConfigMap().get(NODE_CONFIG_FILES);
         files.add(filename);
@@ -232,6 +240,7 @@ public class Config {
         config.initializeHubConfig();
         config.initializeIEDriver();
         config.initializeChromeDriver();
+        config.initializeGeckoDriver();
 
         return FirstTimeRunConfig.customiseConfig(config);
     }
@@ -303,6 +312,23 @@ public class Config {
             getConfigMap().put(CHROME_DRIVER, chromeDriver);
 
             return chromeDriver;
+        }
+    }
+
+    public DriverInfo getGeckoDriver() {
+        try {
+            return (GeckoDriver) getConfigMap().get(GECKO_DRIVER);
+        } catch (ClassCastException e) {
+            LinkedTreeMap
+                    stringMapFromGoogleWhoCantUseHashMapOnNestedObjects =
+                    (LinkedTreeMap) getConfigMap().get(GECKO_DRIVER);
+            DriverInfo geckoDriver = new GeckoDriver();
+
+            geckoDriver.putAll(stringMapFromGoogleWhoCantUseHashMapOnNestedObjects);
+
+            getConfigMap().put(GECKO_DRIVER, geckoDriver);
+
+            return geckoDriver;
         }
     }
 
@@ -618,5 +644,15 @@ public class Config {
     @SuppressWarnings("unchecked")
     public void addHubClasspathItem(String item) {
         ((List<String>) getConfigMap().get(HUB_ADDITIONAL_CLASSPATH)).add(item);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public List<String> getAdditionalNodeConfig() {
+        return (List<String>) getConfigMap().get(NODE_ADDITIONAL_CLASSPATH);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void addNodeClasspathItem(String item) {
+        ((List<String>) getConfigMap().get(NODE_ADDITIONAL_CLASSPATH)).add(item);
     }
 }

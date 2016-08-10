@@ -88,9 +88,10 @@ public class DefaultConfig {
     public static final String DEFAULT_GRID_EXTRAS_RELEASE_URL = "https://api.github.com/repos/groupon/Selenium-Grid-Extras/releases";
     public static final int GRID_EXTRAS_AUTO_UPDATE_CHECK_INTERVAL = 86400000;
     private static Config config;
-    private static final String webDriverDefaultVersion = "2.41.0";
-    private static final String ieDriverDefaultVersion = "2.41.0";
-    private static final String chromeDriverDefaultVersion = "2.10";
+    private static final String webDriverDefaultVersion = "2.53.0";
+    private static final String ieDriverDefaultVersion = "2.53.1";
+    private static final String chromeDriverDefaultVersion = "2.22";
+    private static final String geckoDriverDefaultVersion = "0.9.0";
 
     public static Config getDefaultConfig() {
         config = new Config();
@@ -98,6 +99,7 @@ public class DefaultConfig {
         loadWebDriverInfo();
         loadIEDriverInfo();
         loadChromeDriverInfo();
+        loadGeckoDriverInfo();
         loadDisabledPlugins();
         loadEnabledPlugins();
         loadSetupConfig();
@@ -200,6 +202,9 @@ public class DefaultConfig {
         return chromeDriverDefaultVersion;
     }
 
+    public static String getGeckoDriverDefaultVersion() {
+        return geckoDriverDefaultVersion;
+    }
 
     private static void loadSetupConfig() {
         config.addSetupTask(MoveMouse.class.getCanonicalName());
@@ -238,6 +243,15 @@ public class DefaultConfig {
         config.getChromeDriver().setDirectory(tmpDir + "chromedriver");
         config.getChromeDriver().setVersion(getChromeDriverDefaultVersion());
         config.getChromeDriver().setBit(JsonCodec.WebDriver.Downloader.BIT_32);
+    }
+
+    private static void loadGeckoDriverInfo() {
+        String tmpDir;
+
+        tmpDir = config.getWebdriver().getDirectory() + RuntimeConfig.getOS().getFileSeparator();
+
+        config.getGeckoDriver().setDirectory(tmpDir + "geckodriver");
+        config.getGeckoDriver().setVersion(getGeckoDriverDefaultVersion());
     }
 
     private static void loadLogConfig() {
@@ -279,6 +293,7 @@ public class DefaultConfig {
         config.addActivatedModules(StopGridExtras.class.getCanonicalName());
         config.addActivatedModules(IEProtectedMode.class.getCanonicalName());
         config.addActivatedModules(IEMixedContent.class.getCanonicalName());
+        config.addActivatedModules(Resolution.class.getCanonicalName());
         config.addActivatedModules(SystemInfo.class.getCanonicalName());
         config.addActivatedModules(GetNodeConfig.class.getCanonicalName());
         config.addActivatedModules(UpdateNodeConfig.class.getCanonicalName());
@@ -287,6 +302,7 @@ public class DefaultConfig {
         config.addActivatedModules(DownloadWebdriver.class.getCanonicalName());
         config.addActivatedModules(DownloadIEDriver.class.getCanonicalName());
         config.addActivatedModules(DownloadChromeDriver.class.getCanonicalName());
+        config.addActivatedModules(DownloadGeckoDriver.class.getCanonicalName());
         config.addActivatedModules(SessionHistory.class.getCanonicalName());
 
         config.addActivatedModules(UpgradeGridExtrasTask.class.getCanonicalName());

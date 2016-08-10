@@ -95,4 +95,13 @@ public class WebDriverReleaseTest {
     assertEquals("index.html?path=2.10/", chromeRelease.getRelativePath());
 
   }
+
+  @Test
+  public void testMarionetteDriverRelease() throws Exception{
+    WebDriverRelease marionetteRelease = new GeckoDriverRelease("0.9.0");
+
+    assertEquals("0.9.0", marionetteRelease.getPrettyPrintVersion("."));
+    assertEquals("geckodriver", marionetteRelease.getName());
+
+  }
 }

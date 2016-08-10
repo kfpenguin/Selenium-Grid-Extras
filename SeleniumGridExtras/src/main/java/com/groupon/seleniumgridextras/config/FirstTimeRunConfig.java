@@ -80,10 +80,14 @@ public class FirstTimeRunConfig {
             configureHub(hubHost, hubPort, defaultConfig);
         }
 
+        String nodePort = "5555";
+        if (defaultConfig.getAutoStartNode()) {
+        	nodePort = getGridNodePort();
+        }
         List<Capability> caps = getCapabilitiesFromUser(defaultConfig);
 
         if (defaultConfig.getAutoStartNode()) {
-            configureNodes(caps, hubHost, hubPort, defaultConfig);
+            configureNodes(caps, hubHost, hubPort, defaultConfig, nodePort);
 
             List<Capability> appiumCaps = getAppiumCapabilitiesFromUser(defaultConfig);
 
@@ -238,10 +242,11 @@ public class FirstTimeRunConfig {
         String
                 answer =
                 askQuestion(
-                        "Would you like WebDriver, IEDriver and ChromeDriver to auto update (1-yes/0-no)", "1");
+                        "Would you like WebDriver, IEDriver, ChromeDriver and GeckoDriver to auto update (1-yes/0-no)", "1");
 
         WebDriverReleaseManager manager = RuntimeConfig.getReleaseManager();
         String versionOfChrome = manager.getChromeDriverLatestVersion().getPrettyPrintVersion(".");
+        String versionOfGecko = manager.getGeckoDriverLatestVersion().getPrettyPrintVersion(".");
         String versionOfWebDriver = manager.getWedriverLatestVersion().getPrettyPrintVersion(".");
         String versionOfIEDriver = manager.getIeDriverLatestVersion().getPrettyPrintVersion(".");
 
@@ -257,39 +262,51 @@ public class FirstTimeRunConfig {
 
             versionOfWebDriver =
                     askQuestion("What version of WebDriver Jar should we use?", versionOfWebDriver);
-            versionOfChrome =
-                    askQuestion("What version of Chrome Driver should we use?", versionOfChrome);
-            bitOfChrome =
-                    askQuestion("What bit of Chrome Driver should we use?", bitOfChrome);
             versionOfIEDriver =
                     askQuestion("What version of IE Driver should we use?", versionOfIEDriver);
+            versionOfGecko =
+                    askQuestion("What version of Gecko Driver should we use?", versionOfGecko);
+            versionOfChrome =
+                    askQuestion("What version of Chrome Driver should we use?", versionOfChrome);
         }
+        bitOfChrome =
+                askQuestion("What bit of Chrome Driver should we use (32 or 64)?", bitOfChrome);
 
         defaultConfig.getWebdriver().setVersion(versionOfWebDriver);
-        defaultConfig.getIEdriver().setVersion(versionOfIEDriver);
-        defaultConfig.getIEdriver().setBit(
-                RuntimeConfig.getOS().getWindowsRealArchitecture().equals("64")? "x64" : "Win32");		
+        if (RuntimeConfig.getOS().isWindows()) {
+            String bitOfIEDriver = RuntimeConfig.getOS().getWindowsRealArchitecture();
+            bitOfIEDriver =
+                    askQuestion("What bit of IE Driver should we use (32 or 64)?", bitOfIEDriver);
+            bitOfIEDriver = bitOfIEDriver.equals("64") ? "x64" : "Win32";
+            defaultConfig.getIEdriver().setVersion(versionOfIEDriver);
+            defaultConfig.getIEdriver().setBit(bitOfIEDriver);
+        }
         defaultConfig.getChromeDriver().setVersion(versionOfChrome);
         defaultConfig.getChromeDriver().setBit(bitOfChrome);
 
+        defaultConfig.getGeckoDriver().setVersion(versionOfGecko);
+
+        System.out.println(
+                "Current Selenium Driver Version: " + defaultConfig.getWebdriver().getVersion());
         System.out
-                .println("Current Selenium Driver Version: " + defaultConfig.getWebdriver().getVersion());
-        System.out.println("Current IE Driver Version: " + defaultConfig.getIEdriver().getVersion());
-        System.out
-                .println("Current Chrome Driver Version: " + defaultConfig.getChromeDriver().getVersion());
+                .println("Current IE Driver Version: " + defaultConfig.getIEdriver().getVersion());
+        System.out.println(
+                "Current Chrome Driver Version: " + defaultConfig.getChromeDriver().getVersion());
         System.out
                 .println("Current Chrome Driver Bit: " + defaultConfig.getChromeDriver().getBit());
+        System.out.println("Current IE Driver Bit: " + defaultConfig.getIEdriver().getBit());
+        System.out.println("Current Gecko Driver Version: "
+                + defaultConfig.getGeckoDriver().getVersion());
 
     }
 
     private static void configureNodes(List<Capability> capabilities, String hubHost,
-                                       String hubPort, Config defaultConfig) {
+            String hubPort, Config defaultConfig, String nodePort) {
         GridNode node = new GridNode();
-        int nodePort = 5555;
 
         node.getConfiguration().setHubHost(hubHost);
         node.getConfiguration().setHubPort(Integer.parseInt(hubPort));
-        node.getConfiguration().setPort(nodePort);
+        node.getConfiguration().setPort(Integer.parseInt(nodePort));
 
         for (Capability cap : capabilities) {
             node.getCapabilities().add(cap);
@@ -480,6 +497,11 @@ public class FirstTimeRunConfig {
 
     private static String getGridHubPort() {
         String port = askQuestion("What is the PORT for the Selenium Grid Hub?", "4444");
+        return port;
+    }
+
+    private static String getGridNodePort() {
+        String port = askQuestion("What is the PORT for the Selenium Grid Node?", "5555");
         return port;
     }
 

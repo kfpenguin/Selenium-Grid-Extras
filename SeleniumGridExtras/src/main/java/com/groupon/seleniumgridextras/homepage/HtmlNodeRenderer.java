@@ -269,6 +269,8 @@ public class HtmlNodeRenderer {
             return RuntimeConfig.getConfig().getChromeDriver().getVersion();
         } else if (browserName.equalsIgnoreCase("internet explorer")) {
             return RuntimeConfig.getConfig().getIEdriver().getVersion();
+        } else if (browserName.equalsIgnoreCase("firefox")) {
+            return RuntimeConfig.getConfig().getGeckoDriver().getVersion();
         } else {
             return RuntimeConfig.getConfig().getWebdriver().getVersion();
         }
@@ -287,7 +289,6 @@ public class HtmlNodeRenderer {
                     .getResizedScreenshotAsBase64String(WIDTH, HEIGHT);
         } catch (AWTException e) {
             logger.debug(e);
-            e.printStackTrace();
 
             BufferedImage
                     errorImage =

@@ -40,12 +40,23 @@ package com.groupon.seleniumgridextras.downloader;
 import org.apache.ant.compress.taskdefs.Unzip;
 import org.apache.log4j.Logger;
 
+import com.groupon.seleniumgridextras.config.RuntimeConfig;
+
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.zip.GZIPInputStream;
 
 public class Unzipper {
   private static Logger logger = Logger.getLogger(Unzipper.class);
 
   public static boolean unzip(String source, String destination) {
+    if(source.endsWith(".tar.gz")) {
+      return decompressTarGunzip(source, destination);
+    } else if(source.endsWith(".gz")) {
+      return decompressGunzip(source, destination);
+    }
     try {
       Unzip unzipper = new Unzip();
       unzipper.setSrc(new File(source));
@@ -58,4 +69,43 @@ public class Unzipper {
     return true;
   }
 
+  private static boolean decompressGunzip(String source, String destination) {
+    String sourceFileName = new File(source).getName();
+    destination = destination + RuntimeConfig.getOS().getFileSeparator() + sourceFileName.substring(0, sourceFileName.lastIndexOf("."));
+    if (RuntimeConfig.getOS().isWindows()) {
+      destination = destination + ".exe";
+    }
+    try {
+      FileInputStream fis = new FileInputStream(source);
+      GZIPInputStream gis = new GZIPInputStream(fis);
+      FileOutputStream fos = new FileOutputStream(destination);
+      byte[] buffer = new byte[1024];
+      int len;
+      while((len = gis.read(buffer)) != -1){
+        fos.write(buffer, 0, len);
+      }
+      fos.close();
+      gis.close();
+    } catch (IOException e) {
+      logger.error(e.toString());
+    }
+    return true;
+  }
+
+  private static boolean decompressTarGunzip(String source, String destination) {
+    try {
+      org.apache.ant.compress.taskdefs.GUnzip gunzip = new org.apache.ant.compress.taskdefs.GUnzip();
+      gunzip.setSrc(new File(source));
+      gunzip.setDest(new File(destination));
+      gunzip.execute();
+      org.apache.ant.compress.taskdefs.Untar untar = new org.apache.ant.compress.taskdefs.Untar();
+      untar.setSrc(new File(source.replace(".gz", "")));
+      untar.setDest(new File(destination)); // Destination doesn't matter?
+      untar.execute();
+    } catch (Exception e) {
+      logger.error(e.toString());
+      return false;
+    }
+    return true;
+  }
 }
