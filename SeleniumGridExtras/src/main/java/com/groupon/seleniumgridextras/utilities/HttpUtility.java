@@ -67,7 +67,7 @@ public class HttpUtility {
 
     public static File downloadVideoFromUri(URI uri, String session) throws IOException {
         //Don't modify this without running the comment out tests!
-
+    	logger.info("Downloading Video");
         File destinationDir;
         File testJSONDir;
         if (RuntimeConfig.getConfig() != null) {
@@ -86,6 +86,8 @@ public class HttpUtility {
         	testJSONDir.mkdir();
         }
 
+        logger.info(String.format("Destination Directory: %s", destinationDir.getAbsolutePath()));
+        logger.info(String.format("TestJSON Directory: %s", testJSONDir.getAbsolutePath()));
         
         // Delete old movies
         VideoRecorderCallable.deleteOldMovies(destinationDir);

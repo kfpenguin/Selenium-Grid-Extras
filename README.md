@@ -188,7 +188,7 @@ How to Copy Video to a Different Location/Filename Per Test Session
 -------------------------------------------------------
 Selenium Grid Extras now has the ability to change output directory and filename of the video recordings per each test session. 
 
-Basically, what you need to do is in your test code have it output a JSON file (probably in setup or teardown) containing the output directory and output filename. If this JSON file exists, then Selenium Grid Extras will pick up the JSON file that matches the current session once video recording is finished and then will copy the video file to your requested destination and rename it. If a JSON file does not exist or does not match the current session, Selenium Grid Extras will continue to copy video to default video output location. This is explained in greater detail below:
+Your test needs to output a JSON file (most likely in setup or teardown) containing the desired output directory and output filename. If this JSON file exists, then Selenium Grid Extras will pick up the JSON file that matches the current session once video recording is finished and then will copy the video file to your requested destination and rename it. If a JSON file does not exist or does not match the current session, Selenium Grid Extras will continue to copy video to default video output location. This is explained in greater detail below:
 
 
 Added a new Video Recording option. Under *video_recording_options* add the option *test_json_dir* that contains the directory where [SessionId].json files will be located. The default directory is *test_JSON* if this option is not added.

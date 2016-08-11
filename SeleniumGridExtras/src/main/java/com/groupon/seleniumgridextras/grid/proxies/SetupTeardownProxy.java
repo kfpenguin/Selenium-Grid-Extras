@@ -39,6 +39,7 @@
 package com.groupon.seleniumgridextras.grid.proxies;
 
 import com.google.common.base.Throwables;
+import com.groupon.seleniumgridextras.config.DefaultConfig;
 import com.groupon.seleniumgridextras.config.RuntimeConfig;
 import com.groupon.seleniumgridextras.config.capabilities.BrowserType;
 import com.groupon.seleniumgridextras.grid.proxies.sessions.threads.NodeRestartCallable;
@@ -50,6 +51,7 @@ import com.groupon.seleniumgridextras.utilities.threads.RemoteGridExtrasAsyncCal
 import com.groupon.seleniumgridextras.utilities.threads.SessionHistoryCallable;
 import com.groupon.seleniumgridextras.utilities.threads.video.RemoteVideoRecordingControlCallable;
 import com.groupon.seleniumgridextras.utilities.threads.video.VideoDownloaderCallable;
+import com.groupon.seleniumgridextras.utilities.HttpUtility;
 import org.apache.log4j.Logger;
 import org.openqa.grid.common.RegistrationRequest;
 import org.openqa.grid.internal.Registry;
@@ -60,6 +62,8 @@ import org.openqa.selenium.remote.CapabilityType;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -156,7 +160,20 @@ public class SetupTeardownProxy extends DefaultRemoteProxy implements TestSessio
                             new HashMap<String, String>()));
         }
 
+        logger.info("Determine if test JSON redirects video output");
+        File testJSONDir;
+        if (RuntimeConfig.getConfig() != null) {
+            testJSONDir = RuntimeConfig.getConfig().getVideoRecording().getTestJSONDir();
+        } else {
+            testJSONDir = new File(DefaultConfig.TEST_JSON_DIR);
+        }
 
+        logger.info("Check if test JSON file exists for this session");
+        String testJSONFile = String.format("%s.json", session.getExternalKey().getKey()); 
+		File testSessionJSON = new File(testJSONDir, testJSONFile);
+        Boolean routeOutput = HttpUtility.doesTestSessionFileExist(testSessionJSON, session.getExternalKey().getKey());
+        logger.info("Does the test JSON redirect video output: " + routeOutput.toString());
+        
         // Stop and download video only if the external session has been established
         if (session.getExternalKey() != null) {
             stopVideoRecording(session);
@@ -166,10 +183,21 @@ public class SetupTeardownProxy extends DefaultRemoteProxy implements TestSessio
                 RuntimeConfig.load(false);
             }
             if (RuntimeConfig.getConfig().getVideoRecording().getVideosToKeep() > 0 && !(RuntimeConfig.getConfig().getAutoStartHub() && RuntimeConfig.getConfig().getAutoStartNode())) {
-                CommonThreadPool.startCallable(
+            	logger.info("Download video.");
+            	CommonThreadPool.startCallable(
                         new VideoDownloaderCallable(
                                 session.getExternalKey().getKey(),
                                 session.getSlot().getRemoteURL().getHost()));
+            }
+            else if (routeOutput) {
+            	logger.info("Download video to redirected video output.");
+            	CommonThreadPool.startCallable(
+                        new VideoDownloaderCallable(
+                                session.getExternalKey().getKey(),
+                                session.getSlot().getRemoteURL().getHost()));
+            }
+            else {
+            	logger.info("Do not download video.");
             }
         }
 
