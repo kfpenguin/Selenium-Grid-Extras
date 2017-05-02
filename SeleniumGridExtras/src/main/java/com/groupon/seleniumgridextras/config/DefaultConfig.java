@@ -48,6 +48,7 @@ public class DefaultConfig {
 	public static final String TEST_JSON_DIR = "test_JSON";
     public static final String VIDEO_OUTPUT_DIRECTORY = "video_output";
     public static final String REBOOT_AFTER_THIS_MANY_SESSIONS = "10";
+    public static final String UNREGISTER_NODE_DURING_REBOOT = "true";
     public static final String DEFAULT_HUB_PORT = "4444";
     public static final String DEFAULT_SHARED_DIRECTORY = "shared";
 
@@ -91,7 +92,7 @@ public class DefaultConfig {
     private static final String webDriverDefaultVersion = "2.53.0";
     private static final String ieDriverDefaultVersion = "2.53.1";
     private static final String chromeDriverDefaultVersion = "2.22";
-    private static final String geckoDriverDefaultVersion = "0.9.0";
+    private static final String geckoDriverDefaultVersion = "0.10.0";
 
     public static Config getDefaultConfig() {
         config = new Config();
@@ -108,6 +109,7 @@ public class DefaultConfig {
         loadSharedDir();
         setAutoUpdateDrivers(JsonCodec.TRUE_INT);
         setRebootAfterSessionCount(REBOOT_AFTER_THIS_MANY_SESSIONS);
+        setUnregisterNodeDuringReboot(UNREGISTER_NODE_DURING_REBOOT);
         loadDefaultVideoRecordingOptions();
         loadHTTPOptions();
         loadHtmlRenderOptions();
@@ -341,5 +343,7 @@ public class DefaultConfig {
         config.setRebootAfterSessions(sessionCount);
     }
 
-
+    public static void setUnregisterNodeDuringReboot(String unregisterNodeDuringReboot) {
+        config.setUnregisterNodeDuringReboot(unregisterNodeDuringReboot);
+    }
 }

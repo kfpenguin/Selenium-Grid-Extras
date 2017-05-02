@@ -17,7 +17,7 @@ public class GeckoDriverDownloaderTest {
   private GeckoDriverDownloader downloader;
   private final String downloadDir = "/tmp/download_gecko_driver_test";
   private File testDir = new File("gecko_downloader_test");
-  private final String VERSION = "0.9.0";
+  private final String VERSION = "0.10.0";
   
   @Before
   public void setUp() throws Exception {
@@ -39,12 +39,12 @@ public class GeckoDriverDownloaderTest {
     new File(RuntimeConfig.getConfigFile()).delete();
     new File(RuntimeConfig.getConfigFile() + ".example").delete();
     String EXPECTED_FILENAME = "geckodriver";
-    String EXPECTED_FILENAME_COMPRESSED = "geckodriver" + VERSION + ".gz";
+    String EXPECTED_FILENAME_COMPRESSED = "geckodriver_" + VERSION + ".tar";
     if(RuntimeConfig.getOS().isWindows()) {
       EXPECTED_FILENAME = "geckodriver_" + VERSION + ".exe";
       EXPECTED_FILENAME_COMPRESSED = "geckodriver_" + VERSION + ".zip";
     } else {
-      String EXPECTED_FILENAME_COMPRESSED2 = "geckodriver" + VERSION + ".tar.gz";
+      String EXPECTED_FILENAME_COMPRESSED2 = "geckodriver_" + VERSION + ".tar.gz";
       new File(testDir, EXPECTED_FILENAME_COMPRESSED2).delete();
     }
     new File(testDir, EXPECTED_FILENAME).delete();
@@ -73,8 +73,8 @@ public class GeckoDriverDownloaderTest {
 
   @Test
   public void testGetOSNames() throws Exception {
-    assertEquals("mac", downloader.getMacName());
-    assertEquals("win64", downloader.getWindownsName());
+    assertEquals("macos", downloader.getMacName());
+    assertEquals("win64", downloader.getWindowsName());
     assertEquals("linux64", downloader.getLinuxName());
   }
   

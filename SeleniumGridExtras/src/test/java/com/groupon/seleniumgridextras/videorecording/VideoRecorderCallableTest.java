@@ -49,9 +49,13 @@ public class VideoRecorderCallableTest {
         delete(session1File);
         delete(session2File);
         delete(session3File);
+<<<<<<< HEAD
         delete(json1File);
         delete(json2File);
         delete(json3File);
+=======
+        delete(new File(DefaultConfig.VIDEO_OUTPUT_DIRECTORY));
+>>>>>>> 1460ce1ea0345c2fa7193be809d5a92984a4fbc1
         delete(new File(RuntimeConfig.getConfigFile()));
         delete(new File(VIDEO_RECORDER_TEST_JSON + ".example"));
     }

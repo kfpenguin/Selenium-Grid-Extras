@@ -38,10 +38,12 @@ public class Config {
     public static final String GRID_JVM_OPTIONS = "grid_jvm_options";
     public static final String GRID_JVM_X_OPTIONS = "grid_jvm_x_options";
     public static final String GRID_EXTRAS_JVM_OPTIONS = "grid_extras_jvm_options";
+    public static final String GRID_EXTRAS_PORT = "grid_extras_port";
 
     public static final String AUTO_UPDATE_DRIVERS = "auto_update_drivers";
     public static final String AUTO_UPDATE_BROWSER_VERSIONS = "auto_update_browser_versions";
     public static final String REBOOT_AFTER_SESSIONS = "reboot_after_sessions";
+    public static final String UNREGISTER_NODE_DURING_REBOOT = "unregisterNodeDuringReboot";
 
     public static final String VIDEO_RECORDING_OPTIONS = "video_recording_options";
     public static final String HTTP_REQUEST_TIMEOUT = "http_request_timeout";
@@ -113,8 +115,9 @@ public class Config {
     }
 
     public void loadNodeClasses() {
+        boolean isSelenium3 = RuntimeConfig.getConfig().getWebdriver().getVersion().startsWith("3.");
         for (String filename : getNodeConfigFiles()) {
-            GridNode node = GridNode.loadFromFile(filename);
+            GridNode node = GridNode.loadFromFile(filename, isSelenium3);
             getNodes().add(node);
         }
     }
@@ -147,11 +150,13 @@ public class Config {
         getConfigMap().put(NODE_ADDITIONAL_CLASSPATH, new ArrayList<String>());
         getConfigMap().put(GRID_JVM_OPTIONS, new HashMap<String, Object>());
         getConfigMap().put(GRID_EXTRAS_JVM_OPTIONS, new HashMap<String, Object>());
+        getConfigMap().put(GRID_EXTRAS_PORT, 3000);
 
         getConfigMap().put(AUTO_UPDATE_DRIVERS, "");
         getConfigMap().put(AUTO_UPDATE_BROWSER_VERSIONS, "");
 
         getConfigMap().put(REBOOT_AFTER_SESSIONS, 0);
+        getConfigMap().put(UNREGISTER_NODE_DURING_REBOOT, "true");
         initializeVideoRecorder();
         getConfigMap().put(HTML_RENDER_OPTIONS, new HtmlConfig());
 
@@ -567,6 +572,14 @@ public class Config {
     public int getRebootAfterSessions() {
         return Integer.valueOf((String) getConfigMap().get(REBOOT_AFTER_SESSIONS));
     }
+    
+    public void setUnregisterNodeDuringReboot(String unregisterNodeDuringReboot) {
+        getConfigMap().put(UNREGISTER_NODE_DURING_REBOOT, unregisterNodeDuringReboot);
+    }
+
+    public boolean getUnregisterNodeDuringReboot() {
+        return Boolean.valueOf((String) getConfigMap().get(UNREGISTER_NODE_DURING_REBOOT));
+    }
 
     public File getConfigsDirectory() {
         return new File("configs");
@@ -590,6 +603,23 @@ public class Config {
 
     public String getGridExtrasReleaseUrl() {
         return (String) getConfigMap().get(GRID_EXTRAS_RELEASE_URL);
+    }
+
+    public void setGridExtrasPort(String port) {
+        getConfigMap().put(GRID_EXTRAS_PORT, port);
+    }
+
+    public Integer getGridExtrasPort() {
+        Object value = getConfigMap().get(GRID_EXTRAS_PORT);
+        if (value instanceof Integer) {
+            return ((Integer) value).intValue();
+        } else if (value instanceof String) {
+            return Integer.valueOf((String) value).intValue();
+        } else if (value instanceof Double) {
+            return ((Double) value).intValue();
+        } else {
+            return 3000;
+        }
     }
 
     public void setLogMaximumAge(long milliseconds) {

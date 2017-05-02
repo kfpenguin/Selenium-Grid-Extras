@@ -73,6 +73,7 @@ public class FirstTimeRunConfig {
 
         setDefaultService(defaultConfig);
 
+        setGridExtrasPort(defaultConfig);
         String hubHost = getGridHubHost();
         String hubPort = getGridHubPort();
 
@@ -86,24 +87,25 @@ public class FirstTimeRunConfig {
         }
         List<Capability> caps = getCapabilitiesFromUser(defaultConfig);
 
-        if (defaultConfig.getAutoStartNode()) {
-            configureNodes(caps, hubHost, hubPort, defaultConfig, nodePort);
-
-            List<Capability> appiumCaps = getAppiumCapabilitiesFromUser(defaultConfig);
-
-            if (appiumCaps.size() > 0) {
-                String appiumStartCommand = getAppiumStartCommand();
-
-                configureAppiumNodes(appiumCaps, hubHost, hubPort, appiumStartCommand, defaultConfig);
-            }
-        }
-
         setLogMaximumDaysToKeep(defaultConfig);
 
         setRebootAfterSessionLimit(defaultConfig);
+        setUnregisterNodeDuringReboot(defaultConfig);
         setAutoLogonAsUser(defaultConfig);
 
         setDriverAutoUpdater(defaultConfig);
+
+        if (defaultConfig.getAutoStartNode()) {
+          configureNodes(caps, hubHost, hubPort, defaultConfig, nodePort);
+
+          List<Capability> appiumCaps = getAppiumCapabilitiesFromUser(defaultConfig);
+
+          if (appiumCaps.size() > 0) {
+              String appiumStartCommand = getAppiumStartCommand();
+
+              configureAppiumNodes(appiumCaps, hubHost, hubPort, appiumStartCommand, defaultConfig);
+          }
+        }
 
         if (defaultConfig.getAutoStartNode()) {
             askToRecordVideo(defaultConfig);
@@ -228,12 +230,31 @@ public class FirstTimeRunConfig {
 
     private static void setRebootAfterSessionLimit(Config defaultConfig) {
 
-        if (!defaultConfig.getAutoStartHub()) { // If this is a HUB, we never want to restart it
+        if (defaultConfig.getAutoStartHub()) { // If this is a HUB, we never want to restart it
+        	defaultConfig.setRebootAfterSessions("0");
+        } else {
             String
                     answer =
                     askQuestion("Restart after how many tests (0-never restart)", "10");
 
             defaultConfig.setRebootAfterSessions(answer);
+        }
+
+    }
+    
+    private static void setUnregisterNodeDuringReboot(Config defaultConfig) {
+
+        if (!defaultConfig.getAutoStartHub()) { // If this is a HUB, we never want to restart it
+            String
+                    answer =
+                    askQuestion(
+                    		"Would you like to unregister the node during reboot immediately so test clients will get an error if they try to connect. Otherwise the node will be only marked as down and test clients are stored in a queue until node is up again. (1-yes/0-no)", "1");
+
+            if (answer.equals("1")) {
+                defaultConfig.setUnregisterNodeDuringReboot("true");
+            } else {
+            	defaultConfig.setUnregisterNodeDuringReboot("false");
+            }
         }
 
     }
@@ -251,6 +272,9 @@ public class FirstTimeRunConfig {
         String versionOfIEDriver = manager.getIeDriverLatestVersion().getPrettyPrintVersion(".");
 
         String bitOfChrome = JsonCodec.WebDriver.Downloader.BIT_32;
+        if(RuntimeConfig.getOS().isMac()) {
+          bitOfChrome = JsonCodec.WebDriver.Downloader.BIT_64;
+        }
 
         if (answer.equals("1")) {
             defaultConfig.setAutoUpdateDrivers("1");
@@ -299,15 +323,20 @@ public class FirstTimeRunConfig {
                 + defaultConfig.getGeckoDriver().getVersion());
 
     }
-
+    
     private static void configureNodes(List<Capability> capabilities, String hubHost,
             String hubPort, Config defaultConfig, String nodePort) {
-        GridNode node = new GridNode();
+        GridNode node = new GridNode(defaultConfig.getWebdriver().getVersion().startsWith("3."));
 
-        node.getConfiguration().setHubHost(hubHost);
-        node.getConfiguration().setHubPort(Integer.parseInt(hubPort));
-        node.getConfiguration().setPort(Integer.parseInt(nodePort));
-
+        if(defaultConfig.getWebdriver().getVersion().startsWith("3.")) {
+          node.setHubHost(hubHost);
+          node.setHubPort(Integer.parseInt(hubPort));
+          node.setPort(Integer.parseInt(nodePort));
+        } else {
+          node.getConfiguration().setHubHost(hubHost);
+          node.getConfiguration().setHubPort(Integer.parseInt(hubPort));
+          node.getConfiguration().setPort(Integer.parseInt(nodePort));
+        }
         for (Capability cap : capabilities) {
             node.getCapabilities().add(cap);
         }
@@ -320,21 +349,31 @@ public class FirstTimeRunConfig {
 
     private static void configureAppiumNodes(List<Capability> capabilities, String hubHost,
                                              String hubPort, String appiumStartCommand, Config defaultConfig) {
-        GridNode node = new GridNode();
+        GridNode node = new GridNode(defaultConfig.getWebdriver().getVersion().startsWith("3."));
         int nodePort = 4723;
         String nodeIp = new OS().getHostIp();
         String nodeUrl = "http://" + nodeIp + ":" + nodePort + "/wd/hub";
         int registerCycle = 5000;
 
-        node.getConfiguration().setMaxSession(1);
-        node.getConfiguration().setHubHost(hubHost);
-        node.getConfiguration().setHubPort(Integer.parseInt(hubPort));
-        node.getConfiguration().setPort(nodePort);
-        node.getConfiguration().setHost(nodeIp);
-        node.getConfiguration().setUrl(nodeUrl);
-        node.getConfiguration().setRegisterCycle(registerCycle);
-        node.getConfiguration().setAppiumStartCommand(appiumStartCommand);
-
+        if(node.getConfiguration() != null) {
+            node.getConfiguration().setMaxSession(1);
+            node.getConfiguration().setHubHost(hubHost);
+            node.getConfiguration().setHubPort(Integer.parseInt(hubPort));
+            node.getConfiguration().setPort(nodePort);
+            node.getConfiguration().setHost(nodeIp);
+            node.getConfiguration().setUrl(nodeUrl);
+            node.getConfiguration().setRegisterCycle(registerCycle);
+            node.getConfiguration().setAppiumStartCommand(appiumStartCommand);
+        } else {
+            node.setMaxSession(1);
+            node.setHubHost(hubHost);
+            node.setHubPort(Integer.parseInt(hubPort));
+            node.setPort(nodePort);
+            node.setHost(nodeIp);
+            node.setUrl(nodeUrl);
+            node.setRegisterCycle(registerCycle);
+            node.setAppiumStartCommand(appiumStartCommand);
+        }
         for (Capability cap : capabilities) {
             node.getCapabilities().add(cap);
         }
@@ -391,14 +430,18 @@ public class FirstTimeRunConfig {
                         capability =
                                 (Capability) Class.forName(currentCapabilityClass.getCanonicalName()).newInstance();
                         capability.setPlatform(platform.toUpperCase());
-                        String guessedBrowserVersion = BrowserVersionDetector.guessBrowserVersion(currentCapabilityClass.getSimpleName());
+                        String guessedBrowserVersion = "";
+                        try {
+                          guessedBrowserVersion = BrowserVersionDetector.guessBrowserVersion(currentCapabilityClass.getSimpleName());
+                        } catch(Exception e) {
+                          logger.warn("Unable to guess browser version for " + currentCapabilityClass.getSimpleName());
+                        }
                         String realBrowserVersion = askQuestion(
                                 "What version of '" + currentCapabilityClass.getSimpleName() + "' is installed?", guessedBrowserVersion);
                         capability.setBrowserVersion(realBrowserVersion);
                         if ((guessedBrowserVersion != realBrowserVersion) && ableToAutoDetectBrowserVersions.equals("1")) {
                             ableToAutoDetectBrowserVersions = "0";
                         }
-
                         chosenCapabilities.add(capability);
                     } catch (Exception e) {
                         logger.warn("Warning: Had an issue creating capability for " + currentCapabilityClass
@@ -486,6 +529,14 @@ public class FirstTimeRunConfig {
         defaultConfig.setAutoStartNode(value);
     }
 
+    private static void setGridExtrasPort(Config defaultConfig) {
+        String
+                answer =
+                askQuestion("What is the PORT for Selenium Grid Extras?", "3000");
+  
+        defaultConfig.setGridExtrasPort(answer);
+    }
+
     private static String getGridHubHost() {
         String
                 host =
@@ -493,7 +544,6 @@ public class FirstTimeRunConfig {
                         "127.0.0.1");
         return host;
     }
-
 
     private static String getGridHubPort() {
         String port = askQuestion("What is the PORT for the Selenium Grid Hub?", "4444");

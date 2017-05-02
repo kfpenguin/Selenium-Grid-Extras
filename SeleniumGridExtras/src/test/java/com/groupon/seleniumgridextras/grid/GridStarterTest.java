@@ -13,11 +13,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertTrue;
 
 public class GridStarterTest {
@@ -28,7 +28,8 @@ public class GridStarterTest {
     private static final String TEST_COMMAND = "command is here";
     private final String nodeOneConfig = "node1.json";
     private final String nodeTwoConfig = "node2.json";
-    private final String nodeAppiumConfig = "appium_node.json";
+    private final String nodeAppiumOneConfig = "appium_node1.json";
+    private final String nodeAppiumTwoConfig = "appium_node2.json";
 
     private final String logFile = "foo.log";
     private final String command = "command";
@@ -36,14 +37,14 @@ public class GridStarterTest {
     private final
     String
             expectedCommand =
-            command + " -log log" + RuntimeConfig.getOS().getFileSeparator() + logFile;
+            command + " -log log" + RuntimeConfig.getOS().getFileSeparator() + logFile + " ";
 
     private final String appiumLogFile = "appium_foo.log";
     private final String windowsAppiumBatchFileName = appiumLogFile.replace("log", "bat");
     String
             expectedAppiumCommand =
             command + " --log " + System.getProperty("user.dir") + RuntimeConfig.getOS().getFileSeparator()
-                    + "log" + RuntimeConfig.getOS().getFileSeparator() + appiumLogFile;
+                    + "log" + RuntimeConfig.getOS().getFileSeparator() + appiumLogFile + " ";
 
 
     //COMPILED WITH USE OF http://gskinner.com/RegExr/ Use it, it will make your life simpler
@@ -60,19 +61,24 @@ public class GridStarterTest {
         Config config = new Config();
         config.getWebdriver().setVersion("1.1.1");
 
-        GridNode node1 = new GridNode();
-        GridNode node2 = new GridNode();
-        GridNode nodeAppium = new GridNode();
-        nodeAppium.getConfiguration().setAppiumStartCommand("appium");
-        nodeAppium.getConfiguration().setPort(4723);
+        GridNode node1 = new GridNode(false);
+        GridNode node2 = new GridNode(false);
+        GridNode nodeAppium1 = new GridNode(false);
+        nodeAppium1.getConfiguration().setAppiumStartCommand("appium");
+        nodeAppium1.getConfiguration().setPort(4723);
+        GridNode nodeAppium2 = new GridNode(false);
+        nodeAppium2.getConfiguration().setAppiumStartCommand("appium --avd AVD_NAME");
+        nodeAppium2.getConfiguration().setPort(4723);
 
         node1.writeToFile(nodeOneConfig);
         node2.writeToFile(nodeTwoConfig);
-        nodeAppium.writeToFile(nodeAppiumConfig);
+        nodeAppium1.writeToFile(nodeAppiumOneConfig);
+        nodeAppium2.writeToFile(nodeAppiumTwoConfig);
 
         config.addNodeConfigFile(nodeOneConfig);
         config.addNodeConfigFile(nodeTwoConfig);
-        config.addNodeConfigFile(nodeAppiumConfig);
+        config.addNodeConfigFile(nodeAppiumOneConfig);
+        config.addNodeConfigFile(nodeAppiumTwoConfig);
 
         config.writeToDisk(RuntimeConfig.getConfigFile());
 
@@ -85,7 +91,8 @@ public class GridStarterTest {
         new File(GRID_HUB_LOG).delete();
         new File(nodeOneConfig).delete();
         new File(nodeTwoConfig).delete();
-        new File(nodeAppiumConfig).delete();
+        new File(nodeAppiumOneConfig).delete();
+        new File(nodeAppiumTwoConfig).delete();
         new File(windowsBatchFileName).delete();
         new File(windowsAppiumBatchFileName).delete();
         new File(gridStartTestJson).delete();
@@ -97,43 +104,90 @@ public class GridStarterTest {
     @Test
     public void testGetNodeStartCommand() throws Exception {
 
-        String startCommand = GridStarter.getNodeStartCommand(nodeOneConfig, false);
-        assertThat(startCommand, containsString("org.openqa.grid.selenium.GridLauncher"));
-        assertThat(startCommand, containsString("-role wd"));
-        assertThat(startCommand, containsString("-nodeConfig " + nodeOneConfig));
+        List<String> startCommand = GridStarter.getNodeStartCommand(nodeOneConfig, false, RuntimeConfig.getConfig());
+        StringBuilder sb1 = new StringBuilder();
+        for(String part : startCommand) {
+          sb1.append(part + " ");
+        }
+        assertTrue(sb1.toString().contains("org.openqa.grid.selenium.GridLauncher"));
+        assertTrue(sb1.toString().contains("-role node"));
+        assertTrue(sb1.toString().contains("-nodeConfig " + nodeOneConfig));
 
-        startCommand = GridStarter.getNodeStartCommand(nodeAppiumConfig, false);
-        assertThat(startCommand, containsString("appium -p 4723"));
-        assertThat(startCommand, containsString("--nodeconfig " + System.getProperty("user.dir")
-                + RuntimeConfig.getOS().getFileSeparator() + nodeAppiumConfig));
+        // Linux
+        startCommand = GridStarter.getNodeStartCommand(nodeAppiumOneConfig, false, RuntimeConfig.getConfig());
+        assertTrue(startCommand.get(0).equals("appium"));
+        assertTrue(startCommand.get(1).equals("-p"));
+        assertTrue(startCommand.get(2).equals("4723"));
+        assertTrue(startCommand.get(3).equals("--log-timestamp"));
+        assertTrue(startCommand.get(4).equals("--nodeconfig"));
+        assertTrue(startCommand.get(5).equals(System.getProperty("user.dir")
+                + RuntimeConfig.getOS().getFileSeparator() + nodeAppiumOneConfig));
 
-        startCommand = GridStarter.getNodeStartCommand(nodeAppiumConfig, true);
-        assertThat(startCommand, containsString("appium -p 4723"));
-        assertThat(startCommand, containsString("--nodeconfig " + System.getProperty("user.dir")
-                + RuntimeConfig.getOS().getFileSeparator() + nodeAppiumConfig));
+        // Windows
+        startCommand = GridStarter.getNodeStartCommand(nodeAppiumOneConfig, true, RuntimeConfig.getConfig());
+        assertTrue(startCommand.get(0).equals("appium"));
+        assertTrue(startCommand.get(1).equals("-p"));
+        assertTrue(startCommand.get(2).equals("4723"));
+        assertTrue(startCommand.get(3).equals("--log-timestamp"));
+        assertTrue(startCommand.get(4).equals("--nodeconfig"));
+        assertTrue(startCommand.get(5).equals(System.getProperty("user.dir")
+                + RuntimeConfig.getOS().getFileSeparator() + nodeAppiumOneConfig));
+
+        // Appium parameters in start command
+        startCommand = GridStarter.getNodeStartCommand(nodeAppiumTwoConfig, false, RuntimeConfig.getConfig());
+        assertTrue(startCommand.get(0).equals("appium"));
+        assertTrue(startCommand.get(1).equals("--avd"));
+        assertTrue(startCommand.get(2).equals("AVD_NAME"));
+        assertTrue(startCommand.get(3).equals("-p"));
+        assertTrue(startCommand.get(4).equals("4723"));
+        assertTrue(startCommand.get(5).equals("--log-timestamp"));
+        assertTrue(startCommand.get(6).equals("--nodeconfig"));
+        assertTrue(startCommand.get(7).equals(System.getProperty("user.dir")
+                + RuntimeConfig.getOS().getFileSeparator() + nodeAppiumTwoConfig));
     }
 
     @Test
     public void testGetBackgroundStartCommandForNode() throws Exception {
+        List<String> cmd = new ArrayList<String>();
+        cmd.add(command);
+        List<String> backgroundStartCmdNonWindows = GridStarter.getBackgroundStartCommandForNode(cmd, logFile, false);
 
-        assertEquals(expectedCommand,
-                GridStarter.getBackgroundStartCommandForNode(command, logFile, false));
+        assertEquals(expectedCommand, convertCommandToString(backgroundStartCmdNonWindows));
 
-        assertEquals("start /MIN " + windowsBatchFileName,
-                GridStarter.getBackgroundStartCommandForNode(command, logFile, true));
+        cmd.clear();
+        cmd.add(command);
+        List<String> backgroundStartCmdWindows = GridStarter.getBackgroundStartCommandForNode(cmd, logFile, true);
+        assertEquals("cmd /C start /MIN " + windowsBatchFileName + " ", convertCommandToString(backgroundStartCmdWindows));
 
+        cmd.clear();
+        cmd.add(command);        
         assertEquals(expectedCommand, readFile(windowsBatchFileName));
 
-        assertEquals(expectedAppiumCommand,
-                GridStarter.getBackgroundStartCommandForNode(command, appiumLogFile, false));
+        cmd.clear();
+        cmd.add(command);
+        List<String> backgroundStartCmdAppiumNonWindows = GridStarter.getBackgroundStartCommandForNode(cmd, appiumLogFile, false);
+        assertEquals(expectedAppiumCommand, convertCommandToString(backgroundStartCmdAppiumNonWindows));
+        
+        cmd.clear();
+        cmd.add(command);
+        List<String> backgroundStartCmdAppiumWindows = GridStarter.getBackgroundStartCommandForNode(cmd, appiumLogFile, true);
+        assertEquals("cmd /C start /MIN " + windowsAppiumBatchFileName + " ", convertCommandToString(backgroundStartCmdAppiumWindows));
 
-        assertEquals("start /MIN " + windowsAppiumBatchFileName,
-                GridStarter.getBackgroundStartCommandForNode(command, appiumLogFile, true));
-
+        cmd.clear();
+        cmd.add(command);
         assertEquals(expectedAppiumCommand, readFile(windowsAppiumBatchFileName));
 
     }
 
+    private String convertCommandToString(List<String> command) {
+      StringBuilder sb = new StringBuilder();
+      
+      for(String part : command) {
+        sb.append(part + " ");
+      }
+      
+      return sb.toString();
+    }
 
     //  @Test
 //  public void testGetOsSpecificHubStartCommandForLinux() throws Exception {
@@ -179,16 +233,19 @@ public class GridStarterTest {
 
     @Test
     public void testEdgeDriverDString() throws Exception {
-        assertEquals(" -Dwebdriver.edge.driver=\"C:\\Program Files (x86)\\Microsoft Web Driver\\MicrosoftWebDriver.exe\"",
-                GridStarter.getEdgeDriverExecutionPathParam());
+        Config config = new Config();
+        assertEquals("-Dwebdriver.edge.driver=\"C:\\Program Files (x86)\\Microsoft Web Driver\\MicrosoftWebDriver.exe\"",
+                GridStarter.getEdgeDriverExecutionPathParam(config));
     }
 
     @Test
     public void testChromeDriverDString() throws Exception {
+        Config config = new Config();
+        config.getChromeDriver().setDirectory("/tmp/webdriver/chromedriver");
         if (RuntimeConfig.getOS().isWindows()) {
-            assertTrue(GridStarter.getChromeDriverExecutionPathParam().contains("-Dwebdriver.chrome.driver=\\tmp\\webdriver\\chromedriver\\chromedriver_"));
+            assertTrue(GridStarter.getChromeDriverExecutionPathParam(config).contains("-Dwebdriver.chrome.driver=\\tmp\\webdriver\\chromedriver\\chromedriver_"));
         } else {
-            assertTrue(GridStarter.getChromeDriverExecutionPathParam().contains("-Dwebdriver.chrome.driver=/tmp/webdriver/chromedriver/chromedriver_"));
+            assertTrue(GridStarter.getChromeDriverExecutionPathParam(config).contains("-Dwebdriver.chrome.driver=/tmp/webdriver/chromedriver/chromedriver_"));
         }
     }
 

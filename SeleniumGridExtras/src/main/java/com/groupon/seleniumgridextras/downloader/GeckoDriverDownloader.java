@@ -55,7 +55,6 @@ public class GeckoDriverDownloader extends Downloader {
     setVersion(version);
 
     setDestinationFile("geckodriver_" + getVersion() + "." + getExtension());
-//    setDestinationFile("wires" + "." + getExtension());
 
     String sourceURL = "https://github.com/mozilla/geckodriver/releases/download/v" + 
     	      getVersion() + "/geckodriver-v" + getVersion() + "-" + getOSName() + "." + getExtension();
@@ -107,8 +106,6 @@ public class GeckoDriverDownloader extends Downloader {
           logger.debug(finalExecutable.getAbsolutePath());
         }
 
-        System.out.println("finalExecutable : " + finalExecutable);
-        System.out.println("finalExecutable.getAbsolutePath() : " + finalExecutable.getAbsolutePath());
         tempUnzipedExecutable.renameTo(finalExecutable);
 
         setDestinationFile(finalExecutable.getAbsolutePath());
@@ -147,7 +144,7 @@ public class GeckoDriverDownloader extends Downloader {
     String os;
 
     if (RuntimeConfig.getOS().isWindows()) {
-      os = getWindownsName();
+      os = getWindowsName();
     } else if (RuntimeConfig.getOS().isMac()) {
       os = getMacName();
     } else {
@@ -162,10 +159,10 @@ public class GeckoDriverDownloader extends Downloader {
   }
 
   protected String getMacName() {
-    return "mac";
+    return "macos";
   }
 
-  protected String getWindownsName() {
+  protected String getWindowsName() {
     return "win64";
   }
 
